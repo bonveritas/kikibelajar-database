@@ -3,9 +3,14 @@
 CREATE TABLE Customer (
     ID_Customer char(5) primary key,
     Name_Cust varchar(80),
-    Phone_Cust varchar(20),
+    Phone_Cust varchar(15),
     Email_Cust varchar(50),
-    Address_Cust varchar(100)
+
+    CONSTRAINT ck_custname CHECK(LENGTH(Name_Cust > 3),
+    CONSTRAINT ck_custid CHECK(REGEXP_LIKE(ID_Customer, '^CR[0-9{3}$')),
+    CONSTRAINT ck_custphone CHECK(Phone_Cust LIKE '+62%'),
+    CONSTRAINT ck_emailcust CHECK(Email_Cust LIKE '%@gmail.com')
+    
 );
 
 INSERT ALL
@@ -21,58 +26,13 @@ INSERT ALL
     VALUES('CS005', 'Radit Kemal', '+6289077653342', 'raditkemal05@gmail.com', 'Bandung')
 SELECT * FROM dual;
 
--- 2. Counter
-CREATE TABLE Counter (
-    ID_Counter char(5) primary key,
-    Phone_Counter varchar(20),
-    Email_Counter varchar(50),
-    Number_Counter int
-);
-
-INSERT ALL
-    INTO Counter(ID_Counter, Phone_Counter, Email_Counter, Number_Counter)
-    VALUES('CR001', '+6289077543218', 'damricntr01@damri.id', 1)
-    INTO Counter(ID_Counter, Phone_Counter, Email_Counter, Number_Counter)
-    VALUES('CR002', '+6284551902367', 'damricntr02@damri.id', 2)
-    INTO Counter(ID_Counter, Phone_Counter, Email_Counter, Number_Counter)
-    VALUES('CR003', '+6280955431890', 'damricntr03@damri.id', 3)
-    INTO Counter(ID_Counter, Phone_Counter, Email_Counter, Number_Counter)
-    VALUES('CR004', '+6280965321678', 'damricntr04@damri.id', 4)
-    INTO Counter(ID_Counter, Phone_Counter, Email_Counter, Number_Counter)
-    VALUES('CR005', '+6280814357980', 'damricntr05@damri.id', 5)
-SELECT * FROM dual;
-
--- 3. Staff
-CREATE TABLE Staff (
-    ID_Staff char(5) primary key,
-    ID_Counter char(5),
-    Name_Staff varchar(50),
-    Phone_Staff varchar(20),
-    Email_Staff varchar(50),
-    Position_Staff varchar(30),
-
-    FOREIGN KEY (ID_Counter) REFERENCES Counter(ID_Counter) ON DELETE CASCADE
-);
-
-INSERT ALL
-    INTO Staff(ID_Staff, ID_Counter, Name_Staff, Phone_Staff, Email_Staff, Position_Staff)
-    VALUES('ST001', 'CR001', 'Abel Dabelia', '+6280988543321', 'abel.dabel@damri.id', 'Customer Service')
-    INTO Staff(ID_Staff, ID_Counter, Name_Staff, Phone_Staff, Email_Staff, Position_Staff)
-    VALUES('ST002', 'CR002', 'Belva Imelva', '+6289077654329', 'belva.imel@damri.id', 'Cashier')
-    INTO Staff(ID_Staff, ID_Counter, Name_Staff, Phone_Staff, Email_Staff, Position_Staff)
-    VALUES('ST003', 'CR003', 'Cean Wicean', '+6289066543219', 'cean.wice@damri.id', 'Manager')
-    INTO Staff(ID_Staff, ID_Counter, Name_Staff, Phone_Staff, Email_Staff, Position_Staff)
-    VALUES('ST004', 'CR004', 'Dewa Sadewa', '+6280912637890', 'dewa.sade@damri.id', 'Customer Service')
-    INTO Staff(ID_Staff, ID_Counter, Name_Staff, Phone_Staff, Email_Staff, Position_Staff)
-    VALUES('ST005', 'CR005', 'Elsy Maelsy', '+6286799054431', 'elsy.mael@damri.id', 'Manager')
-SELECT * FROM dual;
-
 -- 4. Service Class
 CREATE TABLE Service_Class (
     ID_Class char(5) primary key,
     Type_Class varchar(20),
-    Price_Min int,
-    Price_Max int
+    
+    CONSTRAINT ck_classid CHECK(REGEXP_LIKE(ID_Class, '^CS[0-9{3}$')),
+    CONSTRAINT ck_classtype CHECK(Type_Class IN 'Business', 'Executive', 'Royal')
 );
 
 INSERT ALL
@@ -87,11 +47,12 @@ SELECT * FROM dual;
 -- 5. Vehicle
 CREATE TABLE Vehicle (
     ID_Vehicle char(5) primary key,
-    ID_Class char(5),
+    Type_Vehicle varchar(50),
     No_Plate varchar(9),
     Total_Capacity int,
-
-    FOREIGN KEY (ID_Class) REFERENCES Service_Class(ID_Class) ON DELETE CASCADE
+    
+    CONSTRAINT ck_vehid CHECK(REGEXP_LIKE(ID_Vehicle, '^VH[0-9{3}$')),
+    CONSTRAINT ck_vehtype CHECK(Type_Vehicle IN 'Bus Besar', 'Sleeper Bus', 'Bus Kecil')
 );
 
 INSERT ALL
@@ -110,11 +71,13 @@ SELECT * FROM dual;
 -- 6. Seat
 CREATE TABLE Seat (
     ID_Seat char(5) primary key,
-    ID_Vehicle char(5),
+    ID_Trip char(50,
     No_Seat varchar(10),
     Status_Avail varchar(20),
 
-    FOREIGN KEY (ID_Vehicle) REFERENCES Vehicle(ID_Vehicle) ON DELETE CASCADE
+    FOREIGN KEY (ID_Trip) REFERENCES Trip(ID_Trip) ON DELETE CASCADE,
+    CONSTRAINT ck_seatid CHECK(REGEXP_LIKE(ID_Seat, '^ST[0-9{3}$')),
+    CONSTRAINT ck_statavail CHECK(Status_Avail IN 'Available', 'Held', 'Booked')
 );
 
 INSERT ALL
@@ -134,11 +97,14 @@ SELECT * FROM dual;
 CREATE TABLE Trip (
     ID_Trip char(5) primary key,
     ID_Vehicle char(5),
+    ID_Class char(5),
     Depart_Time date,
-    Start_Destination varchar(50),
-    End_Destination varchar(50),
+    Start_Location varchar(50),
+    End_Location varchar(50),
 
-    FOREIGN KEY (ID_Vehicle) REFERENCES Vehicle(ID_Vehicle) ON DELETE CASCADE
+    FOREIGN KEY (ID_Vehicle) REFERENCES Vehicle(ID_Vehicle) ON DELETE CASCADE,
+    FOREIGN KEY (ID_Class) REFERENCES Service_Class(ID_Class) ON DELETE CASCADE,
+    CONSTRAINT ck_tripid CHECK(REGEXP_LIKE(ID_Trip, '^TP[0-9{3}$'))
 );
 
 INSERT ALL
@@ -159,15 +125,14 @@ CREATE TABLE Booking (
     ID_Booking char(5) primary key,
     ID_Customer char(5),
     ID_Trip char(5),
-    ID_Seat char(5),
+    Code_Booking varchar(10),
     Time_Booking date,
     Status_Booking varchar(20),
-    Total_Ticket int,
-    Type_Booking varchar(20),
 
     FOREIGN KEY (ID_Customer) REFERENCES Customer(ID_Customer) ON DELETE CASCADE,
     FOREIGN KEY (ID_Trip) REFERENCES Trip(ID_Trip) ON DELETE CASCADE,
-    FOREIGN KEY (ID_Seat) REFERENCES Seat(ID_Seat)) ON DELETE CASCADE
+    CONSTRAINT ck_bookid CHECK(REGEXP_LIKE(ID_Booking, '^BK[0-9{3}$')),
+    CONSTRAINT ck_statbook CHECK(Status_Booking IN 'Pending', 'Confirmed', 'Cancelled')
 );
 
 INSERT ALL
@@ -187,12 +152,12 @@ SELECT * FROM dual;
 CREATE TABLE Ticket (
     ID_Ticket char(5) primary key,
     ID_Booking char(5),
-    Code_Booking varchar(10),
-    Type_Ticket varchar(20),
-    Price_Ticket int,
     Valid_Status varchar(20),
+    Price_Ticket int,
 
-    FOREIGN KEY (ID_Booking) REFERENCES Booking(ID_Booking) ON DELETE CASCADE
+    FOREIGN KEY (ID_Booking) REFERENCES Booking(ID_Booking) ON DELETE CASCADE,
+    CONSTRAINT ck_ticketid CHECK(REGEXP_LIKE(ID_Ticket, '^TK[0-9{3}$')),
+    CONSTRAINT ck_statvalid CHECK(Valid_Status IN 'Valid', 'Used', 'Expired')
 );
 
 INSERT ALL
@@ -213,7 +178,9 @@ CREATE TABLE Payment_Method (
     ID_PaymentMethod char(5) primary key,
     Payment_Type varchar(10),
 
-    FOREIGN KEY (ID_Payment) REFERENCES Payment(ID_Payment) ON DELETE CASCADE
+    FOREIGN KEY (ID_Payment) REFERENCES Payment(ID_Payment) ON DELETE CASCADE,
+    CONSTRAINT ck_paymetid CHECK(REGEXP_LIKE(ID_PaymentMethod, '^PM[0-9{3}$')),
+    CONSTRAINT ck_paytype CHECK(Payment_Type IN 'Bank Transfer', 'E-wallet', 'Card')
 );
 
 INSERT ALL
@@ -232,8 +199,11 @@ CREATE TABLE Payment (
     ID_PaymentMethod char(5),
     Total_Payment decimal(10,2),
     Date_Payment date,
+    Status_Payment varchar(20),
 
-    FOREIGN KEY (ID_Booking) REFERENCES Booking(ID_Booking) ON DELETE CASCADE
+    FOREIGN KEY (ID_Booking) REFERENCES Booking(ID_Booking) ON DELETE CASCADE,
+    FOREIGN KEY (ID_PaymentMethod) REFERENCES Payment_Method(ID_PaymentMethod) ON DELETE CASCADE,
+    CONSTRAINT ck_statpay CHECK(Status_Payment IN 'Pending', 'Success', 'Failed')
 );
 
 INSERT ALL
