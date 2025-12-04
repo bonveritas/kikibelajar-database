@@ -36,19 +36,19 @@ CREATE TABLE Service_Class (
 );
 
 INSERT ALL
-    INTO Service_Class(ID_Class, Type_Class, Price_Min, Price_Max)
-    VALUES('CS001', 'Economy', 100000, 150000)
-    INTO Service_Class(ID_Class, Type_Class, Price_Min, Price_Max)
-    VALUES('CS002', 'Executive', 200000, 250000)
-    INTO Service_Class(ID_Class, Type_Class, Price_Min, Price_Max)
-    VALUES('CS003', 'Royal', 300000, 350000)
+    INTO Service_Class(ID_Class, Type_Class)
+    VALUES('CS001', 'Business')
+    INTO Service_Class(ID_Class, Type_Class)
+    VALUES('CS002', 'Executive')
+    INTO Service_Class(ID_Class, Type_Class)
+    VALUES('CS003', 'Royal')
 SELECT * FROM dual;
 
 -- 5. Vehicle
 CREATE TABLE Vehicle (
     ID_Vehicle char(5) primary key,
     Type_Vehicle varchar(50),
-    No_Plate varchar(9),
+    No_Plate varchar(10),
     Total_Capacity int,
     
     CONSTRAINT ck_vehid CHECK(REGEXP_LIKE(ID_Vehicle, '^VH[0-9{3}$')),
@@ -56,16 +56,12 @@ CREATE TABLE Vehicle (
 );
 
 INSERT ALL
-    INTO Vehicle(ID_Vehicle, ID_Class, No_Plate, Total_Capacity)
-    VALUES('VH001', 'CS001', 'B 1299 WIN', 30)
-    INTO Vehicle(ID_Vehicle, ID_Class, No_Plate, Total_Capacity)
-    VALUES('VH002', 'CS002', 'BH 1 BRT', 50)
-    INTO Vehicle(ID_Vehicle, ID_Class, No_Plate, Total_Capacity)
-    VALUES('VH003', 'CS003', 'B 3467 ETA', 65)
-    INTO Vehicle(ID_Vehicle, ID_Class, No_Plate, Total_Capacity)
-    VALUES('VH004', 'CS001', 'BH 2901 BN', 30)
-    INTO Vehicle(ID_Vehicle, ID_Class, No_Plate, Total_Capacity)
-    VALUES('VH005', 'CS002', 'B 3209 PLN', 50)
+    INTO Vehicle(ID_Vehicle, Type_Vehicle, No_Plate, Total_Capacity)
+    VALUES('VH001', ‘Bus Besar’, 'B 1299 WIN', 39)
+    INTO Vehicle(ID_Vehicle, Type_Vehicle, No_Plate, Total_Capacity)
+    VALUES('VH002', 'Sleeper Bus', 'BH 1 RT', 10)
+    INTO Vehicle(ID_Vehicle, Type_Vehicle, No_Plate, Total_Capacity)
+    VALUES('VH003', 'Bus Kecil', 'B 3467 ETA', 32)
 SELECT * FROM dual;
 
 -- 6. Seat
